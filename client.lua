@@ -78,9 +78,7 @@ local function OpenPhonographMenu(entity, networkEntityId)
     end)
 end
 
-
 local promptGroup = UipromptGroup:new(Config.Promp.Controls)
-
 
 local playMusicPrompt = Uiprompt:new(`INPUT_DYNAMIC_SCENARIO`, Config.Promp.Play, promptGroup)
 playMusicPrompt:setHoldMode(true)
@@ -129,8 +127,6 @@ local function updatePrompts()
     end
 end
 
-
-
 RegisterNetEvent('rs_phonograph:client:spawnPhonograph')
 AddEventHandler('rs_phonograph:client:spawnPhonograph', function(data)
     local propModel = GetHashKey('p_phonograph01x')
@@ -141,14 +137,11 @@ AddEventHandler('rs_phonograph:client:spawnPhonograph', function(data)
     PlaceObjectOnGroundProperly(object)
     SetEntityRotation(object, data.rotation.x, data.rotation.y, data.rotation.z, 2, true)
 
-    -- Guarda referencia para control futuro (interacción, borrar, etc)
     phonographEntities = phonographEntities or {}
     local netId = NetworkGetNetworkIdFromEntity(object)
-    phonographEntities[netId] = data.id -- o data.id para identificar el objeto
+    phonographEntities[netId] = data.id
     updatePrompts()
 end)
-
-
 
 AddEventHandler('playerSpawned', function()
     TriggerServerEvent("rs_phonograph:server:loadPhonographs")
@@ -337,7 +330,6 @@ AddEventHandler('rs_phonograph:client:removePhonograph', function(uniqueId)
     end
 end)
 
--- Music events
 RegisterNetEvent('rs_phonograph:client:playMusic')
 AddEventHandler('rs_phonograph:client:playMusic',
                 function(id, coords, url, volume)
@@ -345,13 +337,11 @@ AddEventHandler('rs_phonograph:client:playMusic',
     exports.xsound:Distance(id, 10)
 end)
 
--- Listen for stop event from the server
 RegisterNetEvent('rs_phonograph:client:stopMusic')
 AddEventHandler('rs_phonograph:client:stopMusic', function(id)
     exports.xsound:Destroy(id) 
 end)
 
--- Listen for volume change from the server
 RegisterNetEvent('rs_phonograph:client:setVolume')
 AddEventHandler('rs_phonograph:client:setVolume', function(id, newVolume)
     volume = newVolume
