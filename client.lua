@@ -1,6 +1,5 @@
 local soundId = 'rs_phonograph'
 local volume = 0.3
-local heading, confirmed
 local phonographEntities = {} 
 local spawnedPhonograph = false
 
