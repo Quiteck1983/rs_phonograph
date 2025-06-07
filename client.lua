@@ -4,7 +4,7 @@ local heading, confirmed
 local phonographEntities = {} 
 local spawnedPhonograph = false
 
-local function OpenPhonographMenu(entity, networkEntityId)
+local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
     local Menu = exports.rs_menu:GetMenuData()
     Menu.CloseAll()
 
@@ -39,25 +39,25 @@ local function OpenPhonographMenu(entity, networkEntityId)
             }
 
             local result = exports.vorp_inputs:advancedInput(myInput)
+            local id = uniqueId
 
             if result and result:sub(1, 4) == "http" then
                 local url = result
-                TriggerServerEvent('rs_phonograph:server:playMusic', soundId .. '-' .. networkEntityId, GetEntityCoords(entity), url, volume)
+                TriggerServerEvent('rs_phonograph:server:playMusic', uniqueId, GetEntityCoords(entity), url, volume)
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.PlayMessage, "generic_textures", "tick", 1500, "GREEN")
             else
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.InvalidUrlMessage, "menu_textures", "cross", 500, "COLOR_RED")
             end
 
         elseif data.current.value == "stop" then
-            local id = 'rs_phonograph' .. '-' .. networkEntityId
-            TriggerServerEvent('rs_phonograph:server:stopMusic', id)
+            TriggerServerEvent('rs_phonograph:server:stopMusic', uniqueId)
             TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.StopMessage, "menu_textures", "stop", 500, "COLOR_RED")
 
         elseif data.current.value == "volume_up" then
             if volume < 1.0 then
                 volume = volume + 0.1
                 if volume > 1.0 then volume = 1.0 end
-                TriggerServerEvent('rs_phonograph:server:setVolume', soundId .. '-' .. networkEntityId, volume)
+                TriggerServerEvent('rs_phonograph:server:setVolume', uniqueId, volume)
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.VolumeUpMessage:format(math.floor(volume * 100)), "generic_textures", "tick", 500, "GREEN")
             else
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.MaxVolumeMessage, "menu_textures", "cross", 500, "COLOR_RED")
@@ -67,7 +67,7 @@ local function OpenPhonographMenu(entity, networkEntityId)
             if volume > 0.0 then
                 volume = volume - 0.1
                 if volume < 0.0 then volume = 0.0 end
-                TriggerServerEvent('rs_phonograph:server:setVolume', soundId .. '-' .. networkEntityId, volume)
+                TriggerServerEvent('rs_phonograph:server:setVolume', uniqueId, volume)
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.VolumeDownMessage:format(math.floor(volume * 100)), "generic_textures", "tick", 500, "GREEN")
             else
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.MinVolumeMessage, "menu_textures", "cross", 500, "COLOR_RED")
@@ -117,13 +117,11 @@ local function updatePrompts()
     end
 
     if not found then
-
         promptGroup:setActive(false)
         playMusicPrompt:setVisible(false)
         playMusicPrompt:setEnabled(false)
         pickUpPrompt:setVisible(false)
         pickUpPrompt:setEnabled(false)
-
     end
 end
 
@@ -134,8 +132,8 @@ AddEventHandler('rs_phonograph:client:spawnPhonograph', function(data)
     while not HasModelLoaded(propModel) do Wait(10) end
 
     local object = CreateObject(propModel, data.x, data.y, data.z, true, false, false)
-    PlaceObjectOnGroundProperly(object)
-    SetEntityRotation(object, data.rotation.x, data.rotation.y, data.rotation.z, 2, true)
+
+    SetEntityRotation(object, data.rotation.x, data.rotation.y, data.rotation.z, 0, true)
 
     phonographEntities = phonographEntities or {}
     local netId = NetworkGetNetworkIdFromEntity(object)
@@ -154,14 +152,13 @@ AddEventHandler('onClientResourceStart', function(resourceName)
 end)
 
 promptGroup:setOnHoldModeJustCompleted(function(group, prompt)
-
     if closestEntity and DoesEntityExist(closestEntity) then
         local netId = NetworkGetNetworkIdFromEntity(closestEntity)
         local uniqueId = phonographEntities[netId]
 
         if prompt == playMusicPrompt then
             if uniqueId then
-                OpenPhonographMenu(closestEntity, netId)
+                OpenPhonographMenu(closestEntity, netId, uniqueId)
             else
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.UnregisteredMessage, "generic_textures", "tick", 3000, "GREEN")
             end
@@ -269,11 +266,11 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
             if IsControlPressed(0, 0xA65EBAB4) then posX = posX - moveStep end -- LEFT
             if IsControlPressed(0, 0xDEB34313) then posX = posX + moveStep end -- RIGHT
 
-            if IsControlPressed(0, 0xB03A913B) then posZ = posZ + moveStep end -- Z
-            if IsControlPressed(0, 0x42385422) then posZ = posZ - moveStep end -- X
+            if IsControlPressed(0, 0xB03A913B) then posZ = posZ + moveStep end -- 7
+            if IsControlPressed(0, 0x42385422) then posZ = posZ - moveStep end -- 8
 
-            if IsControlPressed(0, 0xE6F612E4) then heading = heading + 5 end -- Q
-            if IsControlPressed(0, 0x1CE6D9EB) then heading = heading - 5 end -- E
+            if IsControlPressed(0, 0xE6F612E4) then heading = heading + 5 end -- 1
+            if IsControlPressed(0, 0x1CE6D9EB) then heading = heading - 5 end -- 2
 
             SetEntityCoords(object, posX, posY, posZ, true, true, true, false)
             SetEntityHeading(object, heading)
@@ -291,7 +288,7 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
                 phonographEntities = phonographEntities or {}
                 phonographEntities[netId] = uniqueId
 
-                local rotation = GetEntityRotation(object, 2) -- ← ROTACIÓN REAL
+                local rotation = GetEntityRotation(object, 2)
                 local coords = GetEntityCoords(object)
 
                 TriggerServerEvent('rs_phonograph:server:saveOwner',
@@ -330,25 +327,33 @@ AddEventHandler('rs_phonograph:client:removePhonograph', function(uniqueId)
     end
 end)
 
-local phonographSounds = {}
+
+local function getSoundName(id)
+    return "phonograph_" .. tostring(id)
+end
 
 RegisterNetEvent('rs_phonograph:client:playMusic')
 AddEventHandler('rs_phonograph:client:playMusic', function(id, coords, url, volume)
-    exports.xsound:PlayUrlPos(id, url, volume, coords)
-    exports.xsound:Distance(id, 10)
-    phonographSounds[id] = true
+    local soundName = getSoundName(id)
+
+    exports.xsound:PlayUrlPos(soundName, url, volume, coords)
+    exports.xsound:Distance(soundName, 10)
 end)
 
 RegisterNetEvent('rs_phonograph:client:stopMusic')
 AddEventHandler('rs_phonograph:client:stopMusic', function(id)
-    if phonographSounds[id] then
-        exports.xsound:Destroy(id)
-        phonographSounds[id] = nil
+    local soundName = getSoundName(id)
+
+    if exports.xsound:soundExists(soundName) then
+        exports.xsound:Destroy(soundName)
     end
 end)
 
 RegisterNetEvent('rs_phonograph:client:setVolume')
 AddEventHandler('rs_phonograph:client:setVolume', function(id, newVolume)
-    volume = newVolume
-    exports.xsound:setVolume(id, volume)
+    local soundName = getSoundName(id)
+
+    if exports.xsound:soundExists(soundName) then
+        exports.xsound:setVolume(soundName, newVolume)
+    end
 end)
