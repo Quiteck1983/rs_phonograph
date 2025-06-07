@@ -3,7 +3,7 @@ Config = {}
 Config.Promp = {
     Play = "Play Music",
     Collect =  "Collect",
-    Controls =  "Phonograph Controls",
+    Controls =  "Phonograph",
 }
 
 Config.Text = {
