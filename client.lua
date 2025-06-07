@@ -305,6 +305,7 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
                 isPlacing = false
                 spawnedPhonograph = false
                 DeleteObject(object)
+                TriggerServerEvent("rs_phonograph:givePhonograph")
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.Placed, "menu_textures", "cross", 500, "COLOR_RED")
                 lib.hideTextUI()
             end
