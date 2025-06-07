@@ -1,13 +1,11 @@
 local VORPcore = exports.vorp_core:GetCore()
 local VorpInv = exports.vorp_inventory:vorp_inventoryApi()
-local spawnedPhonograph = false
-local objectPosition = {}
 local currentlyPlaying = {}
 
 RegisterNetEvent('rs_phonograph:server:playMusic')
 AddEventHandler('rs_phonograph:server:playMusic', function(id, coords, url, volume)
     if currentlyPlaying[id] then
-        return -- Ya está sonando, no hacer nada
+        return
     end
 
     currentlyPlaying[id] = {
@@ -18,9 +16,14 @@ AddEventHandler('rs_phonograph:server:playMusic', function(id, coords, url, volu
 
     TriggerClientEvent('rs_phonograph:client:playMusic', -1, id, coords, url, volume)
 
-    SetTimeout(60000, function()
+end)
+
+RegisterNetEvent('rs_phonograph:server:stopMusic')
+AddEventHandler('rs_phonograph:server:stopMusic', function(id)
+    if currentlyPlaying[id] then
+        TriggerClientEvent('rs_phonograph:client:stopMusic', -1, id)
         currentlyPlaying[id] = nil
-    end)
+    end
 end)
 
 RegisterNetEvent('rs_phonograph:server:saveOwner')
@@ -35,10 +38,9 @@ AddEventHandler('rs_phonograph:server:saveOwner', function(id, coords, rotation)
     local u_identifier = Character.identifier
     local u_charid = Character.charIdentifier
 
-    -- Normalizar rotación si es necesario (puedes quitar si no lo usas)
-    local rotX = rotation.x
-    local rotY = rotation.y 
-    local rotZ = rotation.z
+    local rotX = rotation.x or 0
+    local rotY = rotation.y or 0
+    local rotZ = rotation.z or 0
 
     local query = [[
         INSERT INTO phonographs (id, owner_identifier, owner_charid, x, y, z, rot_x, rot_y, rot_z)
@@ -58,8 +60,6 @@ AddEventHandler('rs_phonograph:server:saveOwner', function(id, coords, rotation)
     }
 
     exports.oxmysql:execute(query, params, function(result)
-        if result and result.affectedRows and result.affectedRows > 0 then
-        end
     end)
 end)
 
@@ -68,6 +68,7 @@ AddEventHandler('rs_phonograph:server:pickUpByOwner', function()
     local src = source
     local User = VORPcore.getUser(src)
     if not User then return end
+
     local Character = User.getUsedCharacter
     if not Character then return end
 
@@ -80,11 +81,12 @@ AddEventHandler('rs_phonograph:server:pickUpByOwner', function()
         function(results)
             if results and #results > 0 then
                 for _, row in ipairs(results) do
-                    local phonographId = row.id
-                    TriggerClientEvent('rs_phonograph:client:removePhonograph', -1, phonographId)
-                    if currentlyPlaying and currentlyPlaying[phonographId] then
-                        TriggerClientEvent('rs_phonograph:client:stopMusic', -1, phonographId)
-                        currentlyPlaying[phonographId] = nil
+                    local id = row.id
+                    TriggerClientEvent('rs_phonograph:client:removePhonograph', -1, id)
+
+                    if currentlyPlaying[id] then
+                        TriggerClientEvent('rs_phonograph:client:stopMusic', -1, id)
+                        currentlyPlaying[id] = nil
                     end
                 end
 
@@ -93,8 +95,10 @@ AddEventHandler('rs_phonograph:server:pickUpByOwner', function()
                     {u_identifier, u_charid},
                     function(result)
                         if result and result.affectedRows and result.affectedRows > 0 then
-                            exports.vorp_inventory:addItem(src, "phonograph", 1)
+                            VorpInv.addItem(src, "phonograph", 1)
                             VORPcore.NotifyLeft(src, Config.Text.Phono, Config.Text.Picked, "generic_textures", "tick", 4000, "GREEN")
+                        else
+                            VORPcore.NotifyLeft(src, Config.Text.Phono, "Error al eliminar fonógrafos.", "menu_textures", "cross", 4000, "COLOR_RED")
                         end
                     end
                 )
@@ -154,6 +158,5 @@ end)
 
 RegisterNetEvent("rs_phonograph:server:loadPhonographs")
 AddEventHandler("rs_phonograph:server:loadPhonographs", function()
-    local src = source
-    loadPhonographs(src)
+    loadPhonographs()
 end)
