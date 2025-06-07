@@ -18,14 +18,6 @@ AddEventHandler('rs_phonograph:server:playMusic', function(id, coords, url, volu
 
 end)
 
-RegisterNetEvent('rs_phonograph:server:stopMusic')
-AddEventHandler('rs_phonograph:server:stopMusic', function(id)
-    if currentlyPlaying[id] then
-        TriggerClientEvent('rs_phonograph:client:stopMusic', -1, id)
-        currentlyPlaying[id] = nil
-    end
-end)
-
 RegisterNetEvent('rs_phonograph:server:saveOwner')
 AddEventHandler('rs_phonograph:server:saveOwner', function(id, coords, rotation)
     local src = source
