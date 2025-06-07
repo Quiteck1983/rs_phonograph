@@ -330,16 +330,21 @@ AddEventHandler('rs_phonograph:client:removePhonograph', function(uniqueId)
     end
 end)
 
+local phonographSounds = {}
+
 RegisterNetEvent('rs_phonograph:client:playMusic')
-AddEventHandler('rs_phonograph:client:playMusic',
-                function(id, coords, url, volume)
+AddEventHandler('rs_phonograph:client:playMusic', function(id, coords, url, volume)
     exports.xsound:PlayUrlPos(id, url, volume, coords)
     exports.xsound:Distance(id, 10)
+    phonographSounds[id] = true
 end)
 
 RegisterNetEvent('rs_phonograph:client:stopMusic')
 AddEventHandler('rs_phonograph:client:stopMusic', function(id)
-    exports.xsound:Destroy(id) 
+    if phonographSounds[id] then
+        exports.xsound:Destroy(id)
+        phonographSounds[id] = nil
+    end
 end)
 
 RegisterNetEvent('rs_phonograph:client:setVolume')
