@@ -129,39 +129,25 @@ local function updatePrompts()
     end
 end
 
-phonographEntities = phonographEntities or {}
 
-RegisterNetEvent("rs_phonograph:client:spawnPhonograph")
-AddEventHandler("rs_phonograph:client:spawnPhonograph", function(data)
 
-    local propHash = joaat('p_phonograph01x')
-    RequestModel(propHash)
-    while not HasModelLoaded(propHash) do Wait(0) end
+RegisterNetEvent('rs_phonograph:client:spawnPhonograph')
+AddEventHandler('rs_phonograph:client:spawnPhonograph', function(data)
+    local propModel = GetHashKey('p_phonograph01x')
+    RequestModel(propModel)
+    while not HasModelLoaded(propModel) do Wait(10) end
 
-    local x, y, z = data.x, data.y, data.z
+    local object = CreateObject(propModel, data.x, data.y, data.z, true, false, false)
+    PlaceObjectOnGroundProperly(object)
+    SetEntityRotation(object, data.rotation.x, data.rotation.y, data.rotation.z, 2, true)
 
-    local success, groundZ = GetGroundZFor_3dCoord(x, y, z + 1.0, false)
-    if success then z = groundZ end
-
-    local obj = CreateObject(propHash, x, y, z, true, false, true)
-    if not DoesEntityExist(obj) then
-        return
-    end
-
-    PlaceObjectOnGroundProperly(obj)
-    Wait(100)
-
-    -- Aplicar la rotación correctamente
-    SetEntityHeading(obj, data.rotation.z)
-    FreezeEntityPosition(obj, true)
-
-    local netId = NetworkGetNetworkIdFromEntity(obj)
+    -- Guarda referencia para control futuro (interacción, borrar, etc)
     phonographEntities = phonographEntities or {}
-    phonographEntities[netId] = data.id
-
+    local netId = NetworkGetNetworkIdFromEntity(object)
+    phonographEntities[netId] = data.id -- o data.id para identificar el objeto
     updatePrompts()
-
 end)
+
 
 
 AddEventHandler('playerSpawned', function()
