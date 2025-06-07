@@ -23,7 +23,6 @@ AddEventHandler('rs_phonograph:server:playMusic', function(id, coords, url, volu
     end)
 end)
 
-
 RegisterNetEvent('rs_phonograph:server:saveOwner')
 AddEventHandler('rs_phonograph:server:saveOwner', function(id, coords, rotation)
     local src = source
@@ -121,12 +120,17 @@ local function loadPhonographs()
                         z = row.rot_z,
                     }
                 }
-
                 TriggerClientEvent('rs_phonograph:client:spawnPhonograph', -1, phonographData)
             end
         end
     end)
 end
+
+AddEventHandler('onResourceStart', function(resourceName)
+    if GetCurrentResourceName() == resourceName then
+        loadPhonographs()
+    end
+end)
 
 VorpInv.RegisterUsableItem("phonograph", function(data)
     local src = data.source
@@ -153,4 +157,3 @@ AddEventHandler("rs_phonograph:server:loadPhonographs", function()
     local src = source
     loadPhonographs(src)
 end)
-
