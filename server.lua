@@ -160,3 +160,8 @@ RegisterNetEvent("rs_phonograph:server:loadPhonographs")
 AddEventHandler("rs_phonograph:server:loadPhonographs", function()
     loadPhonographs()
 end)
+
+RegisterNetEvent("rs_phonograph:givePhonograph", function()
+    local src = source
+    VorpInv.addItem(src, "phonograph", 1)
+end)
