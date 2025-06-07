@@ -38,9 +38,9 @@ AddEventHandler('rs_phonograph:server:saveOwner', function(id, coords, rotation)
     local u_identifier = Character.identifier
     local u_charid = Character.charIdentifier
 
-    local rotX = rotation.x or 0
-    local rotY = rotation.y or 0
-    local rotZ = rotation.z or 0
+    local rotX = rotation.x
+    local rotY = rotation.y
+    local rotZ = rotation.z
 
     local query = [[
         INSERT INTO phonographs (id, owner_identifier, owner_charid, x, y, z, rot_x, rot_y, rot_z)
