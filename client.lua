@@ -1,10 +1,10 @@
+local Menu = exports.vorp_menu:GetMenuData()
 local soundId = 'rs_phonograph'
 local volume = 0.3
 local phonographEntities = {} 
 local spawnedPhonograph = false
 
 local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
-    local Menu = exports.vorp_menu:GetMenuData()
     Menu.CloseAll()
 
     local MenuElements = {
