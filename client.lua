@@ -4,7 +4,7 @@ local phonographEntities = {}
 local spawnedPhonograph = false
 
 local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
-    local Menu = exports.rs_menu:GetMenuData()
+    local Menu = exports.vorp_menu:GetMenuData()
     Menu.CloseAll()
 
     local MenuElements = {
