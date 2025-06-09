@@ -196,7 +196,7 @@ local function updatePrompts()
             local entityCoords = GetEntityCoords(entity)
             local distance = #(playerCoords - entityCoords)
 
-            if distance <= 1.5 then -- Activar solo si el jugador está cerca (2.0 metros)
+            if distance <= 1.5 then
                 closestEntity = entity
                 found = true
                 break
@@ -204,7 +204,6 @@ local function updatePrompts()
         end
     end
 
-    -- Activar/desactivar prompts según si hay un fonógrafo cercano
     promptGroup:setActive(found)
     playMusicPrompt:setVisible(found)
     playMusicPrompt:setEnabled(found)
@@ -304,9 +303,8 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
 
     Citizen.CreateThread(function()
         while isPlacing do
-            Citizen.Wait(0) -- Reducir carga en cada iteración
+            Citizen.Wait(0)
 
-            -- Manejo de ajustes de velocidad con entrada validada
             if IsControlJustPressed(0, 0x4F49CC4C) then
                 local myInput = {
                     type = "enableinput",
@@ -332,7 +330,6 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
                 end
             end
 
-            -- Movimiento del objeto
             local moved = false
             if IsControlPressed(0, 0x6319DB71) then posY = posY + moveStep; moved = true end -- UP
             if IsControlPressed(0, 0x05CA7C52) then posY = posY - moveStep; moved = true end -- DOWN
@@ -343,13 +340,11 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
             if IsControlPressed(0, 0xE6F612E4) then heading = heading + 5; moved = true end -- 1
             if IsControlPressed(0, 0x1CE6D9EB) then heading = heading - 5; moved = true end -- 2
 
-            -- Solo actualiza la posición si ha cambiado
             if moved then
                 SetEntityCoords(object, posX, posY, posZ, true, true, true, false)
                 SetEntityHeading(object, heading)
             end
 
-            -- Confirmar colocación
             if IsControlJustPressed(0, 0xC7B5340A) then -- ENTER
                 isPlacing = false
                 
@@ -376,7 +371,6 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
                 updatePrompts()
             end
 
-            -- Cancelar colocación
             if IsControlJustPressed(0, 0x760A9C6F) then -- G
                 isPlacing = false
                 DeleteObject(object)
