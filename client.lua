@@ -126,7 +126,7 @@ local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
             local result = exports.vorp_inputs:advancedInput(myInput)
 
             if result and result:sub(1, 4) == "http" then
-                TriggerServerEvent('rs_phonograph:server:playMusic', id, GetEntityCoords(entity), result, volume)
+                 TriggerServerEvent('rs_phonograph:server:playMusic', id, coords.x, coords.y, coords.z, result, volume)
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.PlayMessage, "generic_textures", "tick", 1500, "GREEN")
             else
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.InvalidUrlMessage, "menu_textures", "cross", 500, "COLOR_RED")
