@@ -2,7 +2,6 @@ local Menu = exports.vorp_menu:GetMenuData()
 local soundId = 'rs_phonograph'
 local volume = 0.3
 local phonographEntities = {} 
-local spawnedPhonograph = false
 
 local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
     Menu.CloseAll()
@@ -217,10 +216,6 @@ UipromptManager:startEventThread()
 
 RegisterNetEvent('rs_phonograph:client:placePropPhonograph')
 AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
-    if spawnedPhonograph then
-        TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.Already, "generic_textures", "tick", 500, "GREEN")
-        return
-    end
 
     local propModel = GetHashKey('p_phonograph01x')
     RequestModel(propModel)
@@ -301,8 +296,7 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
             -- Confirmar colocación
             if IsControlJustPressed(0, 0xC7B5340A) then -- ENTER
                 isPlacing = false
-                spawnedPhonograph = true
-
+                
                 FreezeEntityPosition(object, true)
                 SetEntityAlpha(object, 255, false)
                 SetEntityCollision(object, true, true)
@@ -329,7 +323,6 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
             -- Cancelar colocación
             if IsControlJustPressed(0, 0x760A9C6F) then -- G
                 isPlacing = false
-                spawnedPhonograph = false
                 DeleteObject(object)
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.Placed, "menu_textures", "cross", 500, "COLOR_RED")
                 SendNUIMessage({ action = "hide" })
