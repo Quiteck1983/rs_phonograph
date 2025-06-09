@@ -10,7 +10,7 @@ AddEventHandler('rs_phonograph:server:playMusic', function(id, coords, url, volu
 
     currentlyPlaying[id] = {
         url = url,
-        volume = Config.volumeDefault,
+        volume = volume,
         coords = coords,
     }
 
