@@ -60,6 +60,7 @@ Config.Notify = {
 }
 
 Config.WithEffect = true -- Set to true if you want the sound effect to play
+Config.VolumeEffect = 0.3 -- Change the effect volume here
 Config.AllowCustomSongs = true -- If set to false, people will not be able to play their own songs, only those from the Choose a Song list
 Config.AllowListSongs = true  -- if set to true, the list of songs from Config.SongList will appear in the menu; if set to false, the option to choose a song will not be shown
 
