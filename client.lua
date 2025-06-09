@@ -77,13 +77,11 @@ local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
         table.insert(elements, {
             label = Config.Menu.VolumeUp,
             value = "volume_up",
-            desc = ("Current volume: %d%%"):format(math.floor(volume * 100)),
         })
 
         table.insert(elements, {
             label = Config.Menu.VolumeDown,
             value = "volume_down",
-            desc = ("Current volume: %d%%"):format(math.floor(volume * 100)),
         })
 
         return elements
@@ -143,11 +141,7 @@ local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
                 volume = volume + 0.1
                 if volume > 1.0 then volume = 1.0 end
                 TriggerServerEvent('rs_phonograph:server:setVolume', id, volume)
-
-                menu.setElement(4, "desc", ("Current volume: %d%%"):format(math.floor(volume * 100)))
-                menu.setElement(5, "desc", ("Current volume: %d%%"):format(math.floor(volume * 100)))
-                menu.refresh()
-
+                TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.VolumeUpMessage:format(math.floor(volume * 100)), "generic_textures", "tick", 500, "GREEN")
             else
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.MaxVolumeMessage, "menu_textures", "cross", 500, "COLOR_RED")
             end
@@ -157,11 +151,7 @@ local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
                 volume = volume - 0.1
                 if volume < 0.0 then volume = 0.0 end
                 TriggerServerEvent('rs_phonograph:server:setVolume', id, volume)
-
-                menu.setElement(4, "desc", ("Current volume: %d%%"):format(math.floor(volume * 100)))
-                menu.setElement(5, "desc", ("Current volume: %d%%"):format(math.floor(volume * 100)))
-                menu.refresh()
-
+                TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.VolumeDownMessage:format(math.floor(volume * 100)), "generic_textures", "tick", 500, "GREEN")
             else
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.MinVolumeMessage, "menu_textures", "cross", 500, "COLOR_RED")
             end
@@ -408,10 +398,22 @@ AddEventHandler('rs_phonograph:client:playMusic', function(id, coords, url, volu
 
     if Config.WithEffect then
         local effectSoundName = soundName .. "_effect"
-        exports.xsound:PlayUrlPos(effectSoundName, "https://www.youtube.com/watch?v=m5Mz9Tqs9CE", volume, coords)
+        local effectVolume = volume * 0.3
+        exports.xsound:PlayUrlPos(effectSoundName, "https://www.youtube.com/watch?v=m5Mz9Tqs9CE", effectVolume, coords)
         exports.xsound:Distance(effectSoundName, 10)
     end
+
+    -- Si xsound soporta evento onFinish
+    if exports.xsound.onPlayEnd then
+        exports.xsound:onPlayEnd(soundName, function()
+            local effectSoundName = soundName .. "_effect"
+            if exports.xsound:soundExists(effectSoundName) then
+                exports.xsound:Destroy(effectSoundName)
+            end
+        end)
+    end
 end)
+
 
 RegisterNetEvent('rs_phonograph:client:stopMusic')
 AddEventHandler('rs_phonograph:client:stopMusic', function(id)
@@ -436,8 +438,10 @@ AddEventHandler('rs_phonograph:client:setVolume', function(id, newVolume)
         exports.xsound:setVolume(soundName, newVolume)
     end
 
-    local effectSoundName = soundName .. "_effect"
-    if exports.xsound:soundExists(effectSoundName) then
-        exports.xsound:setVolume(effectSoundName, newVolume)
+    if Config.WithEffect then
+        local effectSoundName = soundName .. "_effect"
+        if exports.xsound:soundExists(effectSoundName) then
+            exports.xsound:setVolume(effectSoundName, newVolume * 0.3)
+        end
     end
 end)
