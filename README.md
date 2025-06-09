@@ -4,7 +4,7 @@ This script allows players to place phonographs in the world and play music dire
 Each phonograph can be positioned freely in the game environment and supports features such as custom volume adjustment, personal ownership, and interactive controls. 
 Players can start and stop playback, adjust the sound, or remove the phonograph if they are its owner. Ideal for creating immersive roleplay scenes with ambient or era-appropriate music.
 
-![image](https://github.com/user-attachments/assets/298889f4-daf2-444e-b17d-c4e1b8833708)
+![image](https://github.com/user-attachments/assets/5710d90b-6be6-425c-b6ce-b3b0cfa089de)
 ![image](https://github.com/user-attachments/assets/9c7f4687-9d4f-4abb-9639-cafe60525d56)
 ![image](https://github.com/user-attachments/assets/66acd9c4-3869-41e5-bcc2-c69aa5e498b9)
 ![image](https://github.com/user-attachments/assets/d3cce964-4bc6-4981-86a3-c2e6bc42c28b)
