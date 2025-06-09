@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Controles</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .nui {
+            position: fixed;
+            bottom: 36px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.9); /* Fondo negro semitransparente */
+            border: 2px solid #916b3abe;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            width: auto; /* Ajusta el ancho automáticamente */
+            max-width: 300px; /* Limita el ancho máximo */
+            color: #916b3abe; /* Dorado brillante para mejor contraste */
+            text-align: right; /* Alineación del texto a la derecha */
+            display: none; /* Oculto por defecto */
+            overflow: auto; /* Permite desplazamiento si es necesario */
+        }
+        .nui h4 {
+            margin: 0 0 10px;
+            font-size: 26px;
+            color: #916b3abe;
+            text-align: left; /* Asegurar que el título también se alinee a la derecha */
+        }
+        .nui p {
+            margin: 5px 0;
+            font-size: 20px;
+            text-align: left; /* Asegurar que los párrafos se alineen a la derecha */
+        }
+    </style>
+</head>
+<body>
+    <div class="nui" id="controlPanel">
+        <h4>Controls</h4>
+        <p>[← ↑ ↓ →] - Mover objeto</p>
+        <p>[1/2]     - Rotar objeto</p>
+        <p>[7/8]     - Mover arriba/abajo</p>
+        <p>[ENTER]   - Confirmar posición</p>
+        <p>[G]       - Cancelar colocación</p>
+        <p>[3]       - Ajustar velocidad</p>
+    </div>
+
+    <script>
+        // Función para mostrar u ocultar el panel
+        window.addEventListener('message', function(event) {
+            const controlPanel = document.getElementById('controlPanel');
+            if (event.data.action === "show") {
+                controlPanel.style.display = 'block'; // Cambiado a 'block' para mejor ajuste
+            } else if (event.data.action === "hide") {
+                controlPanel.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
