@@ -403,7 +403,6 @@ AddEventHandler('rs_phonograph:client:playMusic', function(id, coords, url, volu
         exports.xsound:Distance(effectSoundName, 10)
     end
 
-    -- Si xsound soporta evento onFinish
     if exports.xsound.onPlayEnd then
         exports.xsound:onPlayEnd(soundName, function()
             local effectSoundName = soundName .. "_effect"
@@ -414,7 +413,6 @@ AddEventHandler('rs_phonograph:client:playMusic', function(id, coords, url, volu
     end
 end)
 
-
 RegisterNetEvent('rs_phonograph:client:stopMusic')
 AddEventHandler('rs_phonograph:client:stopMusic', function(id)
     local soundName = getSoundName(id)
@@ -423,7 +421,6 @@ AddEventHandler('rs_phonograph:client:stopMusic', function(id)
         exports.xsound:Destroy(soundName)
     end
 
-    -- Detener el efecto de sonido si existe
     local effectSoundName = soundName .. "_effect"
     if exports.xsound:soundExists(effectSoundName) then
         exports.xsound:Destroy(effectSoundName)
