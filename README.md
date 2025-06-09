@@ -9,3 +9,8 @@ Players can start and stop playback, adjust the sound, or remove the phonograph 
 ![image](https://github.com/user-attachments/assets/66acd9c4-3869-41e5-bcc2-c69aa5e498b9)
 ![image](https://github.com/user-attachments/assets/d3cce964-4bc6-4981-86a3-c2e6bc42c28b)
 ![image](https://github.com/user-attachments/assets/f35f471b-489b-4cca-913f-cf3f5bb61e3a)
+1 - Added an option in config.lua to enable or disable players from adding their own songs
+2 - Added in config.lua the ability to add your own playable songs from the phonograph menu
+![image](https://github.com/user-attachments/assets/89b4d341-7e07-46ac-a895-5a46ed27f438)
+![image](https://github.com/user-attachments/assets/46bb1a17-2a62-4786-8f12-de83fb8c7af5)
+![image](https://github.com/user-attachments/assets/9ce5db0f-8184-429f-bd60-6aa3c082c908)
