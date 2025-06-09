@@ -138,7 +138,7 @@ local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
 
         elseif data.current.value == "volume_up" then
             if volume < 1.0 then
-                volume = volume + 0.1
+                volume = volume + 0.05
                 if volume > 1.0 then volume = 1.0 end
                 TriggerServerEvent('rs_phonograph:server:setVolume', id, volume)
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.VolumeUpMessage:format(math.floor(volume * 100)), "generic_textures", "tick", 500, "GREEN")
@@ -148,7 +148,7 @@ local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
 
         elseif data.current.value == "volume_down" then
             if volume > 0.0 then
-                volume = volume - 0.1
+                volume = volume - 0.05
                 if volume < 0.0 then volume = 0.0 end
                 TriggerServerEvent('rs_phonograph:server:setVolume', id, volume)
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.VolumeDownMessage:format(math.floor(volume * 100)), "generic_textures", "tick", 500, "GREEN")
