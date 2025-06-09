@@ -13,6 +13,9 @@ Config.Text = {
 }
 
 Config.Menu ={
+    Close = "Close",
+    Select = "Select a song to play",
+    Descsub = "Go back without selecting a song",
     Play = "Play",
     Stop = "Stop",
     SongList = "Choose a Song",
@@ -40,13 +43,12 @@ Config.Menu ={
 
 Config.Notify = {
     Phono = "Phonograph",
+    PlaySelect = "Playing selected song",
     PlayMessage = "Music is playing",
     InvalidUrlMessage = "Invalid Url",
     InvalidSound = "Invalid song data",
     StopMessage = "Music stopped",
-    VolumeUpMessage = "Volume increased to %d%%",
     MaxVolumeMessage = "Volume is already at maximum.",
-    VolumeDownMessage = "Volume decreased to %d%%",
     MinVolumeMessage = "Volume is already at minimum.",
     UnregisteredMessage = "Phonograph not registered!",
     NoPhonographMessage = "No valid phonograph in front of you",
