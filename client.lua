@@ -1,53 +1,99 @@
-MenuData = {}
-TriggerEvent("redemrp_menu_base:getData",function(call)
-    MenuData = call
-end)
 local soundId = 'rs_phonograph'
 local volume = 0.3
 local phonographEntities = {} 
 
-local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
-    MenuData.CloseAll()
+local Menu = exports.vorp_menu:GetMenuData()
+
+local function OpenSongListMenu(labelName, songs, uniqueId)
+    Menu.CloseAll()
 
     local elements = {}
 
-    if Config.AllowCustomSongs then
-        table.insert(elements, {
-            label = Config.Menu.Play,
-            value = "play",
-            desc = Config.Menu.DesPlay,
-        })
+    if songs then
+        for _, song in pairs(songs) do
+            table.insert(elements, {
+                label = song.label,
+                value = song.url,
+                desc = song.description or "",
+            })
+        end
     end
 
-    if Config.AllowListSongs then
+    -- Opción para volver o cancelar
+    table.insert(elements, {
+        label = "Cancel",
+        value = "cancel",
+        desc = "Go back without selecting a song",
+    })
+
+    Menu.Open("default", GetCurrentResourceName(), "song_list_menu", {
+        title = labelName,
+        subtext = "Select a song to play",
+        align = "top-right",
+        elements = elements,
+    }, function(data, menu)
+        local selectedUrl = data.current.value
+
+        if selectedUrl == "cancel" then
+            menu.close()
+            return
+        end
+
+        -- Envía al servidor el evento para reproducir la canción con la URL seleccionada
+        TriggerServerEvent('rs_phonograph:server:playMusic', uniqueId, GetEntityCoords(PlayerPedId()), selectedUrl, volume)
+        TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, "Playing selected song.", "generic_textures", "tick", 1500, "GREEN")
+        menu.close()
+    end, function(data, menu)
+        menu.close()
+    end)
+end
+
+local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
+    Menu.CloseAll() -- cerrar todos los menús antes de abrir
+
+    local function BuildElements()
+        local elements = {}
+
+        if Config.AllowCustomSongs then
+            table.insert(elements, {
+                label = Config.Menu.Play,
+                value = "play",
+                desc = Config.Menu.DesPlay,
+            })
+        end
+
+        if Config.AllowListSongs then
+            table.insert(elements, {
+                label = Config.Menu.SongList,
+                value = "choose_song",
+                desc = Config.Menu.DesSongList,
+            })
+        end
+
         table.insert(elements, {
-            label = Config.Menu.SongList,
-            value = "choose_song",
-            desc = Config.Menu.DesSongList,
+            label = Config.Menu.Stop,
+            value = "stop",
+            desc = Config.Menu.DesStop,
         })
+
+        table.insert(elements, {
+            label = Config.Menu.VolumeUp,
+            value = "volume_up",
+            desc = ("Current volume: %d%%"):format(math.floor(volume * 100)),
+        })
+
+        table.insert(elements, {
+            label = Config.Menu.VolumeDown,
+            value = "volume_down",
+            desc = ("Current volume: %d%%"):format(math.floor(volume * 100)),
+        })
+
+        return elements
     end
 
-    table.insert(elements, {
-        label = Config.Menu.Stop,
-        value = "stop",
-        desc = Config.Menu.DesStop,
-    })
+    local elements = BuildElements()
 
-    table.insert(elements, {
-        label = Config.Menu.VolumeUp,
-        value = "volume_up",
-        desc = Config.Menu.DesVolumeUp,
-    })
-
-    table.insert(elements, {
-        label = Config.Menu.VolumeDown,
-        value = "volume_down",
-        desc = Config.Menu.DesVolumeDown,
-    })
-
-    local nuifocus = false
-
-    MenuData.Open('default', GetCurrentResourceName(), 'phonograph_menu', {
+    Menu.Open('default', GetCurrentResourceName(), 'phonograph_menu', {
         title = Config.Menu.Title,
         subtext = Config.Menu.SubTx,
         align = 'top-right',
@@ -87,38 +133,8 @@ local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
             end
 
         elseif data.current.value == "choose_song" then
-            local songOptions = {}
-
-            for i, song in ipairs(Config.SongList) do
-                table.insert(songOptions, {
-                    label = song.label,
-                    value = i,
-                    desc = song.description or "",
-                    image = song.image or nil,
-                    descriptionimages = song.descriptionimages or nil
-                })
-            end
-
-            MenuData.Open('default', GetCurrentResourceName(), 'song_list_menu', {
-                title = Config.Menu.SongList,
-                align = 'top-right',
-                elements = songOptions,
-            },
-            function(data2, menu2)
-                local selectedSong = Config.SongList[data2.current.value]
-                if selectedSong and selectedSong.url then
-                    TriggerServerEvent('rs_phonograph:server:playMusic', id, GetEntityCoords(entity), selectedSong.url, volume)
-                    TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.PlayMessage, "generic_textures", "tick", 1500, "GREEN")
-                else
-                    TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.InvalidSound, "menu_textures", "cross", 500, "COLOR_RED")
-                end
-                menu2.close()
-            end,
-            function(data2, menu2)
-                menu2.close()
-            end,
-            nil,
-            false) -- nuifocus false aquí
+            menu.close()
+            OpenSongListMenu(Config.Menu.SongList, Config.SongList, id)
 
         elseif data.current.value == "stop" then
             TriggerServerEvent('rs_phonograph:server:stopMusic', id)
@@ -130,6 +146,11 @@ local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
                 if volume > 1.0 then volume = 1.0 end
                 TriggerServerEvent('rs_phonograph:server:setVolume', id, volume)
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.VolumeUpMessage:format(math.floor(volume * 100)), "generic_textures", "tick", 500, "GREEN")
+
+                menu.setElement(4, "desc", ("Current volume: %d%%"):format(math.floor(volume * 100))) -- volume_up desc
+                menu.setElement(5, "desc", ("Current volume: %d%%"):format(math.floor(volume * 100))) -- volume_down desc
+                menu.refresh()
+
             else
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.MaxVolumeMessage, "menu_textures", "cross", 500, "COLOR_RED")
             end
@@ -140,6 +161,11 @@ local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
                 if volume < 0.0 then volume = 0.0 end
                 TriggerServerEvent('rs_phonograph:server:setVolume', id, volume)
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.VolumeDownMessage:format(math.floor(volume * 100)), "generic_textures", "tick", 500, "GREEN")
+
+                menu.setElement(4, "desc", ("Current volume: %d%%"):format(math.floor(volume * 100))) -- volume_up desc
+                menu.setElement(5, "desc", ("Current volume: %d%%"):format(math.floor(volume * 100))) -- volume_down desc
+                menu.refresh()
+
             else
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.MinVolumeMessage, "menu_textures", "cross", 500, "COLOR_RED")
             end
@@ -147,10 +173,9 @@ local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
     end,
     function(data, menu)
         menu.close()
-    end,
-    nil, -- onChange no usado
-    nuifocus) -- nuifocus booleano correcto
+    end)
 end
+
 
 local promptGroup = UipromptGroup:new(Config.Promp.Controls)
 
