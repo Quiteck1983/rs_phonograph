@@ -10,7 +10,7 @@ AddEventHandler('rs_phonograph:server:playMusic', function(id, coords, url, volu
 
     currentlyPlaying[id] = {
         url = url,
-        volume = volume or Config.volumeDefault,
+        volume = Config.volumeDefault,
         coords = coords,
     }
 
@@ -30,9 +30,9 @@ AddEventHandler('rs_phonograph:server:saveOwner', function(id, coords, rotation)
     local u_identifier = Character.identifier
     local u_charid = Character.charIdentifier
 
-    local rotX = rotation.x
-    local rotY = rotation.y
-    local rotZ = rotation.z
+    local rotX = rotation.x or 0
+    local rotY = rotation.y or 0
+    local rotZ = rotation.z or 0
 
     local query = [[
         INSERT INTO phonographs (id, owner_identifier, owner_charid, x, y, z, rot_x, rot_y, rot_z)
@@ -90,12 +90,12 @@ AddEventHandler('rs_phonograph:server:pickUpByOwner', function()
                             VorpInv.addItem(src, "phonograph", 1)
                             VORPcore.NotifyLeft(src, Config.Text.Phono, Config.Text.Picked, "generic_textures", "tick", 4000, "GREEN")
                         else
-                            VORPcore.NotifyLeft(src, Config.Text.Phono, "Error al eliminar fonógrafos.", "menu_textures", "cross", 4000, "COLOR_RED")
+                            VORPcore.NotifyLeft(src, Config.Text.Phono, "Error al eliminar fonógrafos.", "menu_textures", "cross", 3000, "COLOR_RED")
                         end
                     end
                 )
             else
-                VORPcore.NotifyLeft(src, Config.Text.Phono, Config.Text.Dont, "menu_textures", "cross", 4000, "COLOR_RED")
+                VORPcore.NotifyLeft(src, Config.Text.Phono, Config.Text.Dont, "menu_textures", "cross", 3000, "COLOR_RED")
             end
         end
     )
@@ -131,7 +131,7 @@ end)
 VorpInv.RegisterUsableItem("phonograph", function(data)
     local src = data.source
     TriggerClientEvent("rs_phonograph:client:placePropPhonograph", src)
-    VorpInv.subItem(src, "phonograph", 1)
+    VorpInv.subItem(src, "phonograph", 0)
     VorpInv.CloseInv(src)
 end)
 
@@ -155,5 +155,5 @@ end)
 
 RegisterNetEvent("rs_phonograph:givePhonograph", function()
     local src = source
-    VorpInv.addItem(src, "phonograph", 1)
+    VorpInv.subItem(src, "phonograph", 1)
 end)
