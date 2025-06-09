@@ -6,8 +6,16 @@ description 'phonograph script '
 author 'riversafe'
 version '1.0.0'
 
+ui_page {
+	'html/index.html'
+}
+
+files {
+	'html/index.html',
+
+}
+
 shared_scripts {
-    '@ox_lib/init.lua',
     'config.lua'
 }
 
@@ -19,10 +27,3 @@ client_scripts {
 server_scripts {
     'server.lua'
 }
-
-
-dependencies {
-    'ox_lib'
-}
-
-lua54 'yes'
