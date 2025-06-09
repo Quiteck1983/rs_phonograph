@@ -2,30 +2,30 @@ Config = {}
 
 Config.Promp = {
     Play = "Play Music",
-    Collect =  "Collect",
-    Controls =  "Phonograph Controls",
+    Collect = "Collect",
+    Controls = "Phonograph",
 }
 
 Config.Text = {
     Phono = "Phonograph",
-    Picked = "You have saved your phonograph",
-    Dont = "This phonograph is not yours",
+    Picked = "You have stored your phonograph",
+    Dont = "This phonograph does not belong to you",
 }
 
-Config.Menu ={
+Config.Menu = {
     Close = "Close",
     Select = "Select a song to play",
-    Descsub = "Go back without selecting a song",
+    Descsub = "Back without selection",
     Play = "Play",
     Stop = "Stop",
-    SongList = "Choose a Song",
+    SongList = "Choose Song",
     DesSongList = "Play a predefined song",
     VolumeUp = "Volume Up",
     VolumeDown = "Volume Down",
     DesPlay = "Play music from a URL",
-    DesStop = "Stop the current music",
-    DesVolumeUp = "Increase the volume",
-    DesVolumeDown = "Decrease the volume",
+    DesStop = "Stop the current song",
+    DesVolumeUp = "Increase volume",
+    DesVolumeDown = "Decrease volume",
     Title = "Phonograph",
     SubTx = "Play Music",
     Button = "Play",
@@ -34,25 +34,26 @@ Config.Menu ={
     Titles = "Please enter a valid URL",
     Confirm = "Confirm",
     MinMax = "0.01 to 5",
-    Change = "Only numbers allowed (0.01 - 5)",
-    Speed = "Change Speed",
+    Change = "Only numbers between 0.01 and 5 allowed",
+    Speed = "Change speed",
     Cancel = "Placement cancelled.",
     Placed = "Phonograph placed!",
-
 }
 
 Config.Notify = {
     Phono = "Phonograph",
-    PlaySelect = "Playing selected song",
+    PlaySelect = "Selected song is playing",
     PlayMessage = "Music is playing",
-    InvalidUrlMessage = "Invalid Url",
+    InvalidUrlMessage = "Invalid URL",
     InvalidSound = "Invalid song data",
     StopMessage = "Music stopped",
+    VolumeUpMessage = "Volume increased to %d%%",
     MaxVolumeMessage = "Volume is already at maximum.",
+    VolumeDownMessage = "Volume decreased to %d%%",
     MinVolumeMessage = "Volume is already at minimum.",
-    UnregisteredMessage = "Phonograph not registered!",
+    UnregisteredMessage = "Phonograph is not registered!",
     NoPhonographMessage = "No valid phonograph in front of you",
-    Already = "You've already placed a phonograph!",
+    Already = "You already have a phonograph placed!",
     Placed = "Placement cancelled",
     Place = "Phonograph placed!",
     Custom = "Custom songs are disabled",
