@@ -8,8 +8,8 @@ Config.Promp = {
 
 Config.Text = {
     Phono = "Phonograph",
-    Picked = "You picked up all your phonographs.",
-    Dont = "You have no phonographs to pick up.",
+    Picked = "You have saved your phonograph",
+    Dont = "This phonograph is not yours",
 }
 
 Config.Menu ={
