@@ -325,7 +325,7 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
                 if result and result ~= "" then
                     local testint = tonumber(result)
                     if testint and testint ~= 0 then
-                        moveStep = math.max(0.01, math.min(testint, 5)) -- Limita entre 0.01 y 5
+                        moveStep = math.max(0.01, math.min(testint, 5))
                     end
                 end
             end
@@ -405,6 +405,12 @@ AddEventHandler('rs_phonograph:client:playMusic', function(id, coords, url, volu
 
     exports.xsound:PlayUrlPos(soundName, url, volume, coords)
     exports.xsound:Distance(soundName, 10)
+
+    if Config.WithEffect then
+        local effectSoundName = soundName .. "_effect"
+        exports.xsound:PlayUrlPos(effectSoundName, "https://www.youtube.com/watch?v=m5Mz9Tqs9CE", volume, coords)
+        exports.xsound:Distance(effectSoundName, 10)
+    end
 end)
 
 RegisterNetEvent('rs_phonograph:client:stopMusic')
@@ -414,6 +420,12 @@ AddEventHandler('rs_phonograph:client:stopMusic', function(id)
     if exports.xsound:soundExists(soundName) then
         exports.xsound:Destroy(soundName)
     end
+
+    -- Detener el efecto de sonido si existe
+    local effectSoundName = soundName .. "_effect"
+    if exports.xsound:soundExists(effectSoundName) then
+        exports.xsound:Destroy(effectSoundName)
+    end
 end)
 
 RegisterNetEvent('rs_phonograph:client:setVolume')
@@ -422,5 +434,10 @@ AddEventHandler('rs_phonograph:client:setVolume', function(id, newVolume)
 
     if exports.xsound:soundExists(soundName) then
         exports.xsound:setVolume(soundName, newVolume)
+    end
+
+    local effectSoundName = soundName .. "_effect"
+    if exports.xsound:soundExists(effectSoundName) then
+        exports.xsound:setVolume(effectSoundName, newVolume)
     end
 end)
