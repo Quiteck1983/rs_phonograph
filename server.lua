@@ -137,6 +137,7 @@ VorpInv.RegisterUsableItem("phonograph", function(data)
 
     local identifier = Character.identifier
     local charid = Character.charIdentifier
+    VorpInv.CloseInv(src)    
 
     exports.oxmysql:execute('SELECT id FROM phonographs WHERE owner_identifier = ? AND owner_charid = ?', {
         identifier, charid
@@ -146,7 +147,6 @@ VorpInv.RegisterUsableItem("phonograph", function(data)
         else
             TriggerClientEvent("rs_phonograph:client:placePropPhonograph", src)
             VorpInv.subItem(src, "phonograph", 0)
-            VorpInv.CloseInv(src)
         end
     end)
 end)
