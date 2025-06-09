@@ -13,7 +13,10 @@ local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
         table.insert(MenuElements, { label = Config.Menu.Play, value = "play", desc = Config.Menu.DesPlay })
     end
 
-    table.insert(MenuElements, { label = Config.Menu.SongList, value = "choose_song", desc = Config.Menu.DesSongList })
+    if Config.AllowListSongs then
+        table.insert(MenuElements, { label = Config.Menu.SongList, value = "choose_song", desc = Config.Menu.DesSongList })
+    end
+
     table.insert(MenuElements, { label = Config.Menu.Stop, value = "stop", desc = Config.Menu.DesStop })
     table.insert(MenuElements, { label = Config.Menu.VolumeUp, value = "volume_up", desc = Config.Menu.DesVolumeUp })
     table.insert(MenuElements, { label = Config.Menu.VolumeDown, value = "volume_down", desc = Config.Menu.DesVolumeDown })
