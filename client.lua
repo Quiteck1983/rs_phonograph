@@ -117,6 +117,7 @@ local function OpenPhonographMenu(entity, networkEntityId, uniqueId)
     end)
 end
 
+
 local promptGroup = UipromptGroup:new(Config.Promp.Controls)
 
 local playMusicPrompt = Uiprompt:new(`INPUT_DYNAMIC_SCENARIO`, Config.Promp.Play, promptGroup)
@@ -140,28 +141,20 @@ local function updatePrompts()
             local entityCoords = GetEntityCoords(entity)
             local distance = #(playerCoords - entityCoords)
 
-            if distance <= 2.0 then
+            if distance <= 1.5 then -- Activar solo si el jugador está cerca (2.0 metros)
                 closestEntity = entity
                 found = true
-
-                promptGroup:setActive(true)
-                playMusicPrompt:setVisible(true)
-                playMusicPrompt:setEnabled(true)
-                pickUpPrompt:setVisible(true)
-                pickUpPrompt:setEnabled(true)
-
                 break
             end
         end
     end
 
-    if not found then
-        promptGroup:setActive(false)
-        playMusicPrompt:setVisible(false)
-        playMusicPrompt:setEnabled(false)
-        pickUpPrompt:setVisible(false)
-        pickUpPrompt:setEnabled(false)
-    end
+    -- Activar/desactivar prompts según si hay un fonógrafo cercano
+    promptGroup:setActive(found)
+    playMusicPrompt:setVisible(found)
+    playMusicPrompt:setEnabled(found)
+    pickUpPrompt:setVisible(found)
+    pickUpPrompt:setEnabled(found)
 end
 
 RegisterNetEvent('rs_phonograph:client:spawnPhonograph')
@@ -256,19 +249,13 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
     SetEntityCollision(object, false, false)
     SetEntityAlpha(object, 150, false)
 
-    lib.showTextUI(
-        '[ARROW KEYS] - Move object  \n' ..
-        '[1/2]        - Rotate object  \n' ..
-        '[7/8]        - Move up/down  \n' ..
-        '[ENTER]      - Confirm placement  \n' ..
-        '[BACKSPACE]  - Cancel placement  \n' ..
-        '[3]          - adjustment speed  \n'
-    )
+    SendNUIMessage({ action = "show" })
 
     Citizen.CreateThread(function()
         while isPlacing do
+            Citizen.Wait(0) -- Reducir carga en cada iteración
 
-            Citizen.Wait(0)
+            -- Manejo de ajustes de velocidad con entrada validada
             if IsControlJustPressed(0, 0x4F49CC4C) then
                 local myInput = {
                     type = "enableinput",
@@ -286,34 +273,32 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
                 }
 
                 local result = exports.vorp_inputs:advancedInput(myInput)
-                if result ~= nil and result ~= "" then
+                if result and result ~= "" then
                     local testint = tonumber(result)
-                    if testint ~= nil and testint ~= 0 then
-                        if testint > 5 then
-                            moveStep = 5
-                        elseif testint < 0.01 then
-                            moveStep = 0.01
-                        else
-                            moveStep = testint
-                        end
+                    if testint and testint ~= 0 then
+                        moveStep = math.max(0.01, math.min(testint, 5)) -- Limita entre 0.01 y 5
                     end
                 end
             end
 
-            if IsControlPressed(0, 0x6319DB71) then posY = posY + moveStep end -- UP
-            if IsControlPressed(0, 0x05CA7C52) then posY = posY - moveStep end -- DOWN
-            if IsControlPressed(0, 0xA65EBAB4) then posX = posX - moveStep end -- LEFT
-            if IsControlPressed(0, 0xDEB34313) then posX = posX + moveStep end -- RIGHT
+            -- Movimiento del objeto
+            local moved = false
+            if IsControlPressed(0, 0x6319DB71) then posY = posY + moveStep; moved = true end -- UP
+            if IsControlPressed(0, 0x05CA7C52) then posY = posY - moveStep; moved = true end -- DOWN
+            if IsControlPressed(0, 0xA65EBAB4) then posX = posX - moveStep; moved = true end -- LEFT
+            if IsControlPressed(0, 0xDEB34313) then posX = posX + moveStep; moved = true end -- RIGHT
+            if IsControlPressed(0, 0xB03A913B) then posZ = posZ + moveStep; moved = true end -- 7
+            if IsControlPressed(0, 0x42385422) then posZ = posZ - moveStep; moved = true end -- 8
+            if IsControlPressed(0, 0xE6F612E4) then heading = heading + 5; moved = true end -- 1
+            if IsControlPressed(0, 0x1CE6D9EB) then heading = heading - 5; moved = true end -- 2
 
-            if IsControlPressed(0, 0xB03A913B) then posZ = posZ + moveStep end -- 7
-            if IsControlPressed(0, 0x42385422) then posZ = posZ - moveStep end -- 8
+            -- Solo actualiza la posición si ha cambiado
+            if moved then
+                SetEntityCoords(object, posX, posY, posZ, true, true, true, false)
+                SetEntityHeading(object, heading)
+            end
 
-            if IsControlPressed(0, 0xE6F612E4) then heading = heading + 5 end -- 1
-            if IsControlPressed(0, 0x1CE6D9EB) then heading = heading - 5 end -- 2
-
-            SetEntityCoords(object, posX, posY, posZ, true, true, true, false)
-            SetEntityHeading(object, heading)
-
+            -- Confirmar colocación
             if IsControlJustPressed(0, 0xC7B5340A) then -- ENTER
                 isPlacing = false
                 spawnedPhonograph = true
@@ -335,19 +320,19 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
                     { x = coords.x, y = coords.y, z = coords.z },
                     { x = rotation.x, y = rotation.y, z = rotation.z }
                 )
-
+                TriggerServerEvent("rs_phonograph:givePhonograph")
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.Place, "generic_textures", "tick", 500, "GREEN")
-                lib.hideTextUI()
+                SendNUIMessage({ action = "hide" })
                 updatePrompts()
             end
 
-            if IsControlJustPressed(0, 0x156F7119) then -- BACKSPACE
+            -- Cancelar colocación
+            if IsControlJustPressed(0, 0x760A9C6F) then -- G
                 isPlacing = false
                 spawnedPhonograph = false
                 DeleteObject(object)
-                TriggerServerEvent("rs_phonograph:givePhonograph")
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.Placed, "menu_textures", "cross", 500, "COLOR_RED")
-                lib.hideTextUI()
+                SendNUIMessage({ action = "hide" })
             end
         end
     end)
