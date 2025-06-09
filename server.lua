@@ -130,9 +130,25 @@ end)
 
 VorpInv.RegisterUsableItem("phonograph", function(data)
     local src = data.source
-    TriggerClientEvent("rs_phonograph:client:placePropPhonograph", src)
-    VorpInv.subItem(src, "phonograph", 0)
-    VorpInv.CloseInv(src)
+    local User = VORPcore.getUser(src)
+    if not User then return end
+    local Character = User.getUsedCharacter
+    if not Character then return end
+
+    local identifier = Character.identifier
+    local charid = Character.charIdentifier
+
+    exports.oxmysql:execute('SELECT id FROM phonographs WHERE owner_identifier = ? AND owner_charid = ?', {
+        identifier, charid
+    }, function(result)
+        if result and #result > 0 then
+            VORPcore.NotifyLeft(src, Config.Notify.Phono, Config.Notify.Already, "menu_textures", "cross", 3000, "COLOR_RED")
+        else
+            TriggerClientEvent("rs_phonograph:client:placePropPhonograph", src)
+            VorpInv.subItem(src, "phonograph", 0)
+            VorpInv.CloseInv(src)
+        end
+    end)
 end)
 
 RegisterNetEvent('rs_phonograph:server:stopMusic')
