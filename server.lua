@@ -4,19 +4,37 @@ local currentlyPlaying = {}
 
 RegisterNetEvent('rs_phonograph:server:playMusic')
 AddEventHandler('rs_phonograph:server:playMusic', function(id, coords, url, volume)
-    if currentlyPlaying[id] then
-        return
-    end
+    if currentlyPlaying[id] then return end
 
     currentlyPlaying[id] = {
         url = url,
         volume = volume,
-        coords = coords,
+        coords = coords
     }
 
     TriggerClientEvent('rs_phonograph:client:playMusic', -1, id, coords, url, volume)
-
 end)
+
+RegisterNetEvent('rs_phonograph:server:stopMusic')
+AddEventHandler('rs_phonograph:server:stopMusic', function(id)
+    currentlyPlaying[id] = nil
+    TriggerClientEvent('rs_phonograph:client:stopMusic', -1, id)
+end)
+
+RegisterNetEvent('rs_phonograph:server:setVolume')
+AddEventHandler('rs_phonograph:server:setVolume', function(id, newVolume)
+    if currentlyPlaying[id] then
+        currentlyPlaying[id].volume = newVolume
+        TriggerClientEvent('rs_phonograph:client:setVolume', -1, id, newVolume)
+    end
+end)
+
+RegisterNetEvent('rs_phonograph:server:soundEnded')
+AddEventHandler('rs_phonograph:server:soundEnded', function(id)
+    currentlyPlaying[id] = nil
+end)
+
+
 
 RegisterNetEvent('rs_phonograph:server:saveOwner')
 AddEventHandler('rs_phonograph:server:saveOwner', function(id, coords, rotation)
@@ -153,19 +171,6 @@ VorpInv.RegisterUsableItem("phonograph", function(data)
             VorpInv.subItem(src, "phonograph", 0)
         end
     end)
-end)
-
-RegisterNetEvent('rs_phonograph:server:stopMusic')
-AddEventHandler('rs_phonograph:server:stopMusic', function(id)
-    if currentlyPlaying[id] then
-        TriggerClientEvent('rs_phonograph:client:stopMusic', -1, id)
-        currentlyPlaying[id] = nil
-    end
-end)
-
-RegisterNetEvent('rs_phonograph:server:setVolume')
-AddEventHandler('rs_phonograph:server:setVolume', function(id, volume)
-    TriggerClientEvent('rs_phonograph:client:setVolume', -1, id, volume)
 end)
 
 RegisterNetEvent("rs_phonograph:server:loadPhonographs")
