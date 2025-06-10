@@ -386,7 +386,7 @@ AddEventHandler('rs_phonograph:client:removePhonograph', function(uniqueId)
 end)
 
 local function getSoundName(id)
-    return "phonograph_" .. tostring(id)
+    return tostring(id) -- nombre limpio, por ejemplo: rs_phonograph-51
 end
 
 RegisterNetEvent('rs_phonograph:client:playMusic')
@@ -409,6 +409,8 @@ AddEventHandler('rs_phonograph:client:playMusic', function(id, coords, url, volu
             if exports.xsound:soundExists(effectSoundName) then
                 exports.xsound:Destroy(effectSoundName)
             end
+            -- Notificar al servidor que terminó
+            TriggerServerEvent('rs_phonograph:server:soundEnded', id)
         end)
     end
 end)
@@ -416,15 +418,18 @@ end)
 RegisterNetEvent('rs_phonograph:client:stopMusic')
 AddEventHandler('rs_phonograph:client:stopMusic', function(id)
     local soundName = getSoundName(id)
+    local effectSoundName = soundName .. "_effect"
 
     if exports.xsound:soundExists(soundName) then
         exports.xsound:Destroy(soundName)
     end
 
-    local effectSoundName = soundName .. "_effect"
     if exports.xsound:soundExists(effectSoundName) then
         exports.xsound:Destroy(effectSoundName)
     end
+
+    -- También avisa al servidor si se detuvo manualmente
+    TriggerServerEvent('rs_phonograph:server:soundEnded', id)
 end)
 
 RegisterNetEvent('rs_phonograph:client:setVolume')
