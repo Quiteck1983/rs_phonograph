@@ -56,7 +56,7 @@ AddEventHandler('rs_phonograph:server:saveOwner', function(id, coords, rotation)
 end)
 
 RegisterNetEvent('rs_phonograph:server:pickUpByOwner')
-AddEventHandler('rs_phonograph:server:pickUpByOwner', function()
+AddEventHandler('rs_phonograph:server:pickUpByOwner', function(phonographId)
     local src = source
     local User = VORPcore.getUser(src)
     if not User then return end
@@ -67,33 +67,38 @@ AddEventHandler('rs_phonograph:server:pickUpByOwner', function()
     local u_identifier = Character.identifier
     local u_charid = Character.charIdentifier
 
+    -- Obtener la posición del jugador
+    local playerPed = GetPlayerPed(src)
+    local playerCoords = GetEntityCoords(playerPed)
+
     exports.oxmysql:execute(
-        'SELECT id FROM phonographs WHERE owner_identifier = ? AND owner_charid = ?',
-        {u_identifier, u_charid},
+        'SELECT * FROM phonographs WHERE id = ? AND owner_identifier = ? AND owner_charid = ?',
+        {phonographId, u_identifier, u_charid},
         function(results)
             if results and #results > 0 then
-                for _, row in ipairs(results) do
-                    local id = row.id
-                    TriggerClientEvent('rs_phonograph:client:removePhonograph', -1, id)
+                local row = results[1]
+                local phonoCoords = vector3(row.x, row.y, row.z)
 
-                    if currentlyPlaying[id] then
-                        TriggerClientEvent('rs_phonograph:client:stopMusic', -1, id)
-                        currentlyPlaying[id] = nil
+                local distance = #(playerCoords - phonoCoords)
+                if distance <= 1.5 then -- validar que esté cerca
+                    TriggerClientEvent('rs_phonograph:client:removePhonograph', -1, phonographId)
+
+                    if currentlyPlaying[phonographId] then
+                        TriggerClientEvent('rs_phonograph:client:stopMusic', -1, phonographId)
+                        currentlyPlaying[phonographId] = nil
                     end
-                end
 
-                exports.oxmysql:execute(
-                    'DELETE FROM phonographs WHERE owner_identifier = ? AND owner_charid = ?',
-                    {u_identifier, u_charid},
-                    function(result)
-                        if result and result.affectedRows and result.affectedRows > 0 then
-                            VorpInv.addItem(src, "phonograph", 1)
-                            VORPcore.NotifyLeft(src, Config.Text.Phono, Config.Text.Picked, "generic_textures", "tick", 4000, "GREEN")
-                        else
-                            VORPcore.NotifyLeft(src, Config.Text.Phono, "Error al eliminar fonógrafos.", "menu_textures", "cross", 3000, "COLOR_RED")
+                    exports.oxmysql:execute(
+                        'DELETE FROM phonographs WHERE id = ?',
+                        {phonographId},
+                        function(result)
+                            if result and result.affectedRows and result.affectedRows > 0 then
+                                VorpInv.addItem(src, "phonograph", 1)
+                                VORPcore.NotifyLeft(src, Config.Text.Phono, Config.Text.Picked, "generic_textures", "tick", 4000, "GREEN")
+                            end
                         end
-                    end
-                )
+                    )
+                end
             else
                 VORPcore.NotifyLeft(src, Config.Text.Phono, Config.Text.Dont, "menu_textures", "cross", 3000, "COLOR_RED")
             end
@@ -137,7 +142,7 @@ VorpInv.RegisterUsableItem("phonograph", function(data)
 
     local identifier = Character.identifier
     local charid = Character.charIdentifier
-    VorpInv.CloseInv(src)    
+    VorpInv.CloseInv(src)
 
     exports.oxmysql:execute('SELECT id FROM phonographs WHERE owner_identifier = ? AND owner_charid = ?', {
         identifier, charid
