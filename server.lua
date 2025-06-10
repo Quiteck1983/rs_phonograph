@@ -2,8 +2,20 @@ local VORPcore = exports.vorp_core:GetCore()
 local VorpInv = exports.vorp_inventory:vorp_inventoryApi()
 local currentlyPlaying = {}
 
-RegisterNetEvent('rs_phonograph:server:playMusic', function(id, coords, url, volume)
+RegisterNetEvent('rs_phonograph:server:playMusic')
+AddEventHandler('rs_phonograph:server:playMusic', function(id, coords, url, volume)
+    if currentlyPlaying[id] then
+        return
+    end
+
+    currentlyPlaying[id] = {
+        url = url,
+        volume = volume,
+        coords = coords,
+    }
+
     TriggerClientEvent('rs_phonograph:client:playMusic', -1, id, coords, url, volume)
+
 end)
 
 RegisterNetEvent('rs_phonograph:server:saveOwner')
