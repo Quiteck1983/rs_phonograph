@@ -67,7 +67,6 @@ AddEventHandler('rs_phonograph:server:pickUpByOwner', function(phonographId)
     local u_identifier = Character.identifier
     local u_charid = Character.charIdentifier
 
-    -- Obtener la posición del jugador
     local playerPed = GetPlayerPed(src)
     local playerCoords = GetEntityCoords(playerPed)
 
@@ -80,7 +79,7 @@ AddEventHandler('rs_phonograph:server:pickUpByOwner', function(phonographId)
                 local phonoCoords = vector3(row.x, row.y, row.z)
 
                 local distance = #(playerCoords - phonoCoords)
-                if distance <= 1.5 then -- validar que esté cerca
+                if distance <= 1.5 then
                     TriggerClientEvent('rs_phonograph:client:removePhonograph', -1, phonographId)
 
                     if currentlyPlaying[phonographId] then
