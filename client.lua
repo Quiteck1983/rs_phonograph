@@ -186,7 +186,7 @@ local function updatePrompts()
             local entityCoords = GetEntityCoords(entity)
             local distance = #(playerCoords - entityCoords)
 
-            if distance <= 1.5 then
+            if GetEntityModel(entity) == GetHashKey('p_phonograph01x') and distance <= 1.5 then
                 closestEntity = entity
                 found = true
                 break
@@ -200,6 +200,7 @@ local function updatePrompts()
     pickUpPrompt:setVisible(found)
     pickUpPrompt:setEnabled(found)
 end
+
 
 RegisterNetEvent('rs_phonograph:client:spawnPhonograph')
 AddEventHandler('rs_phonograph:client:spawnPhonograph', function(data)
