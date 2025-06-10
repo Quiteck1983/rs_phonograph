@@ -24,8 +24,6 @@ Config.Menu = {
     VolumeDown = "Volume Down",
     DesPlay = "Play music from a URL",
     DesStop = "Stop the current song",
-    DesVolumeUp = "Increase volume",
-    DesVolumeDown = "Decrease volume",
     Title = "Phonograph",
     SubTx = "Play Music",
     Button = "Play",
@@ -59,10 +57,10 @@ Config.Notify = {
     Custom = "Custom songs are disabled",
 }
 
-Config.WithEffect = true -- Set to true if you want the sound effect to play
-Config.VolumeEffect = 0.3 -- Change the effect volume here 0.1 to 1.0 maximum
+Config.WithEffect = false      -- Set to true if you want the sound effect to play
+Config.VolumeEffect = 0.3      -- Change the effect volume here
 Config.AllowCustomSongs = true -- If set to false, people will not be able to play their own songs, only those from the Choose a Song list
-Config.AllowListSongs = true  -- if set to true, the list of songs from Config.SongList will appear in the menu; if set to false, the option to choose a song will not be shown
+Config.AllowListSongs = true   -- if set to true, the list of songs from Config.SongList will appear in the menu; if set to false, the option to choose a song will not be shown
 
 Config.SongList = {
     { label = "Émile Waldteufel - Estudiantina", url = "https://youtu.be/q6R5M52lqlw?list=PLJe4EftqVf-ujHNCbcZBwRvwkYuiuHuGl" },
