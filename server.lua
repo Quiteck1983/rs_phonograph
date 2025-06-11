@@ -151,7 +151,7 @@ local function loadPhonographs(playerId)
                         z = row.rot_z or 0,
                     }
                 }
-                TriggerClientEvent('rs_phonograph:client:spawnPhonograph', playerId or -1, phonographData)
+                TriggerClientEvent('rs_phonograph:client:spawnPhonograph', playerId, phonographData)
             end
         end
     end)
