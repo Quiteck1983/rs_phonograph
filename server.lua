@@ -46,9 +46,9 @@ AddEventHandler('rs_phonograph:server:saveOwner', function(coords, rotation)
     local u_identifier = Character.identifier
     local u_charid = Character.charIdentifier
 
-    local rotX = rotation.x or 0
-    local rotY = rotation.y or 0
-    local rotZ = rotation.z or 0
+    local rotX = rotation.x
+    local rotY = rotation.y
+    local rotZ = rotation.z
 
     local query = [[
         INSERT INTO phonographs (owner_identifier, owner_charid, x, y, z, rot_x, rot_y, rot_z)
@@ -146,9 +146,9 @@ local function loadPhonographs(playerId)
                     y = row.y,
                     z = row.z,
                     rotation = {
-                        x = row.rot_x or 0,
-                        y = row.rot_y or 0,
-                        z = row.rot_z or 0,
+                        x = row.rot_x,
+                        y = row.rot_y,
+                        z = row.rot_z,
                     }
                 }
                 TriggerClientEvent('rs_phonograph:client:spawnPhonograph', playerId, phonographData)
