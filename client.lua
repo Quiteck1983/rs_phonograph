@@ -159,6 +159,7 @@ local function OpenPhonographMenu(entity, uniqueId)
     end)
 end
 
+
 local promptGroup = UipromptGroup:new(Config.Promp.Controls)
 
 local playMusicPrompt = Uiprompt:new(`INPUT_DYNAMIC_SCENARIO`, Config.Promp.Play, promptGroup)
@@ -171,6 +172,21 @@ local closestEntity = nil
 local closestId = nil
 local pendingPhonographObject = nil
 phonographEntities = {}
+
+local function clearAllPhonographs()
+    for _, entity in pairs(phonographEntities) do
+        if DoesEntityExist(entity) then
+            DeleteObject(entity)
+        end
+    end
+    phonographEntities = {}
+
+    -- También limpiar lastPlacedPhonograph para evitar objetos huérfanos
+    if lastPlacedPhonograph and lastPlacedPhonograph.entity and DoesEntityExist(lastPlacedPhonograph.entity) then
+        DeleteObject(lastPlacedPhonograph.entity)
+    end
+    lastPlacedPhonograph = nil
+end
 
 local function updatePrompts()
     local playerPed = PlayerPedId()
@@ -224,13 +240,25 @@ AddEventHandler('rs_phonograph:client:spawnPhonograph', function(data)
     SetEntityRotation(object, data.rotation.x, data.rotation.y, data.rotation.z, 0, true)
     SetEntityAsMissionEntity(object, true, true)
 
-
     phonographEntities[uniqueId] = object
 
     CreateThread(function()
         Wait(1000)
         updatePrompts()
     end)
+end)
+
+RegisterNetEvent('rs_phonograph:client:updatePhonographId')
+AddEventHandler('rs_phonograph:client:updatePhonographId', function(id)
+    if lastPlacedPhonograph and lastPlacedPhonograph.entity then
+        phonographEntities[id] = lastPlacedPhonograph.entity -- registramos con ID real
+        lastPlacedPhonograph.id = id
+
+        CreateThread(function()
+            Wait(100)
+            updatePrompts()
+        end)
+    end
 end)
 
 promptGroup:setOnHoldModeJustCompleted(function(group, prompt)
@@ -262,18 +290,19 @@ end)
 
 UipromptManager:startEventThread()
 
+
+
 RegisterNetEvent("vorp:SelectedCharacter")
 AddEventHandler("vorp:SelectedCharacter", function()
+    clearAllPhonographs()
     TriggerServerEvent("rs_phonograph:server:loadPhonographs")
 end)
 
-
-
 RegisterNetEvent('rs_phonograph:client:placePropPhonograph')
 AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
-    local propModel = GetHashKey('p_phonograph01x')
-    RequestModel(propModel)
-    while not HasModelLoaded(propModel) do Wait(10) end
+    local phonographModel = GetHashKey('p_phonograph01x')
+    RequestModel(phonographModel)
+    while not HasModelLoaded(phonographModel) do Wait(10) end
 
     local playerPed = PlayerPedId()
     local px, py, pz = table.unpack(GetEntityCoords(playerPed, true))
@@ -282,7 +311,7 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
     local groundSuccess, groundZ = GetGroundZFor_3dCoord(ox, oy, pz, false)
     if groundSuccess then pz = groundZ end
 
-    local object = CreateObject(propModel, ox, oy, pz, true, false, false)
+    local object = CreateObject(phonographModel, ox, oy, pz, true, false, false)
     PlaceObjectOnGroundProperly(object)
 
     local posX, posY, posZ = table.unpack(GetEntityCoords(object))
@@ -301,33 +330,38 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
             Wait(0)
             local moved = false
 
-            if IsControlPressed(0, 0x6319DB71) then posY = posY + moveStep; moved = true end
-            if IsControlPressed(0, 0x05CA7C52) then posY = posY - moveStep; moved = true end
-            if IsControlPressed(0, 0xA65EBAB4) then posX = posX - moveStep; moved = true end
-            if IsControlPressed(0, 0xDEB34313) then posX = posX + moveStep; moved = true end
-            if IsControlPressed(0, 0xB03A913B) then posZ = posZ + moveStep; moved = true end
-            if IsControlPressed(0, 0x42385422) then posZ = posZ - moveStep; moved = true end
-            if IsControlPressed(0, 0xE6F612E4) then heading = heading + 5; moved = true end
-            if IsControlPressed(0, 0x1CE6D9EB) then heading = heading - 5; moved = true end
+            if IsControlPressed(0, 0x6319DB71) then posY = posY + moveStep; moved = true end -- W
+            if IsControlPressed(0, 0x05CA7C52) then posY = posY - moveStep; moved = true end -- S
+            if IsControlPressed(0, 0xA65EBAB4) then posX = posX - moveStep; moved = true end -- A
+            if IsControlPressed(0, 0xDEB34313) then posX = posX + moveStep; moved = true end -- D
+            if IsControlPressed(0, 0xB03A913B) then posZ = posZ + moveStep; moved = true end -- Q
+            if IsControlPressed(0, 0x42385422) then posZ = posZ - moveStep; moved = true end -- E
+            if IsControlPressed(0, 0xE6F612E4) then heading = heading + 5; moved = true end -- Rotate right
+            if IsControlPressed(0, 0x1CE6D9EB) then heading = heading - 5; moved = true end -- Rotate left
 
             if moved then
                 SetEntityCoords(object, posX, posY, posZ, true, true, true, false)
                 SetEntityHeading(object, heading)
             end
 
-            if IsControlJustPressed(0, 0xC7B5340A) then
+            if IsControlJustPressed(0, 0xC7B5340A) then -- Enter para confirmar colocación
                 isPlacing = false
+
                 FreezeEntityPosition(object, true)
                 SetEntityAlpha(object, 255, false)
                 SetEntityCollision(object, true, true)
 
-                local rotation = GetEntityRotation(object, 2)
-                local coords = GetEntityCoords(object)
+                -- Obtener posición y rotación exactas actuales del objeto
+                local pos = GetEntityCoords(object)
+                local rot = GetEntityRotation(object, 2)
 
-                TriggerServerEvent('rs_phonograph:server:saveOwner', { x = coords.x, y = coords.y, z = coords.z }, { x = rotation.x, y = rotation.y, z = rotation.z })
-                
-                pendingPhonographObject = object
+                lastPlacedPhonograph = {
+                    entity = object,
+                    coords = pos,
+                    rotation = rot
+                }
 
+                TriggerServerEvent('rs_phonograph:server:saveOwner', pos, rot)
                 TriggerServerEvent("rs_phonograph:givePhonograph")
                 TriggerEvent("vorp:NotifyLeft", Config.Notify.Phono, Config.Notify.Place, "generic_textures", "tick", 500, "GREEN")
                 SendNUIMessage({ action = "hide" })
@@ -350,6 +384,7 @@ end)
 local function getSoundName(uniqueId)
     return tostring(uniqueId)
 end
+
 
 RegisterNetEvent('rs_phonograph:client:playMusic')
 AddEventHandler('rs_phonograph:client:playMusic', function(uniqueId, coords, url, volume)
