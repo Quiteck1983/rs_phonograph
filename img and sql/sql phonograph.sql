@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS `phonographs` (
-  `id` varchar(255) NOT NULL,
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `owner_identifier` varchar(255) DEFAULT NULL,
   `owner_charid` int(11) DEFAULT NULL,
   `x` double DEFAULT NULL,
