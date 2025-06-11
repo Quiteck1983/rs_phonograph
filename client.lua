@@ -182,7 +182,6 @@ local function updatePrompts()
         if DoesEntityExist(entity) then
             local entityCoords = GetEntityCoords(entity)
             local distance = #(playerCoords - entityCoords)
-            print(string.format("[PROMPT] Checking entity %s at distance %.2f", uniqueId, distance)) -- Debug
 
             if distance <= 1.5 then
                 closestEntity = entity
