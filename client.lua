@@ -321,7 +321,7 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
                 SetEntityAlpha(object, 255, false)
                 SetEntityCollision(object, true, true)
 
-                local rotation = GetEntityRotation(object, 0)
+                local rotation = GetEntityRotation(object, 2)
                 local coords = GetEntityCoords(object)
 
                 TriggerServerEvent('rs_phonograph:server:saveOwner', { x = coords.x, y = coords.y, z = coords.z }, { x = rotation.x, y = rotation.y, z = rotation.z })
