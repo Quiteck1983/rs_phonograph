@@ -159,7 +159,6 @@ local function OpenPhonographMenu(entity, uniqueId)
     end)
 end
 
-
 local promptGroup = UipromptGroup:new(Config.Promp.Controls)
 
 local playMusicPrompt = Uiprompt:new(`INPUT_DYNAMIC_SCENARIO`, Config.Promp.Play, promptGroup)
@@ -173,16 +172,34 @@ local closestId = nil
 local pendingPhonographObject = nil
 phonographEntities = {}
 
+local function findWorldPhonographs()
+    local modelHash = `p_phonograph01x`
+    local handle, object = FindFirstObject()
+    local success
+    repeat
+        if DoesEntityExist(object) and GetEntityModel(object) == modelHash then
+            local id = NetworkGetNetworkIdFromEntity(object)
+            if not phonographEntities[id] then
+                phonographEntities[id] = object
+               -- print("[Debug] Fonógrafo del mundo detectado. ID:", id)
+            end
+        end
+        success, object = FindNextObject(handle)
+    until not success
+    EndFindObject(handle)
+end
+
 local function clearAllPhonographs()
-    for _, entity in pairs(phonographEntities) do
-        if DoesEntityExist(entity) then
+    for id, entity in pairs(phonographEntities) do
+        if DoesEntityExist(entity) and NetworkGetEntityIsNetworked(entity) then
+           -- print("[Debug] Borrando fonógrafo colocado por jugador. ID:", id)
             DeleteObject(entity)
         end
     end
     phonographEntities = {}
 
-    -- También limpiar lastPlacedPhonograph para evitar objetos huérfanos
     if lastPlacedPhonograph and lastPlacedPhonograph.entity and DoesEntityExist(lastPlacedPhonograph.entity) then
+       -- print("[Debug] Borrando último fonógrafo colocado")
         DeleteObject(lastPlacedPhonograph.entity)
     end
     lastPlacedPhonograph = nil
@@ -198,8 +215,7 @@ local function updatePrompts()
         if DoesEntityExist(entity) then
             local entityCoords = GetEntityCoords(entity)
             local distance = #(playerCoords - entityCoords)
-
-            if distance <= 1.5 then
+            if distance <= 2.5 then
                 closestEntity = entity
                 closestId = uniqueId
                 found = true
@@ -210,7 +226,7 @@ local function updatePrompts()
 
     if not found and pendingPhonographObject and DoesEntityExist(pendingPhonographObject) then
         local distance = #(playerCoords - GetEntityCoords(pendingPhonographObject))
-        if distance <= 1.5 then
+        if distance <= 2.5 then
             closestEntity = pendingPhonographObject
             closestId = nil
             found = true
@@ -222,22 +238,28 @@ local function updatePrompts()
     playMusicPrompt:setEnabled(found)
     pickUpPrompt:setVisible(found)
     pickUpPrompt:setEnabled(found)
+
+   -- print("[PromptDebug] Found:", found, "Closest entity:", closestEntity, "Closest ID:", closestId)
 end
 
 RegisterNetEvent('rs_phonograph:client:spawnPhonograph')
 AddEventHandler('rs_phonograph:client:spawnPhonograph', function(data)
-    local propModel = GetHashKey('p_phonograph01x')
+    local propModel = `p_phonograph01x`
+    local x, y, z = data.x, data.y, data.z
+    local rotZ = tonumber(data.rotation.z or 0.0) % 360.0
+    local uniqueId = data.id
+
     RequestModel(propModel)
     while not HasModelLoaded(propModel) do Wait(10) end
-
-    local uniqueId = data.id
 
     if phonographEntities[uniqueId] and DoesEntityExist(phonographEntities[uniqueId]) then
         DeleteObject(phonographEntities[uniqueId])
     end
 
-    local object = CreateObject(propModel, data.x, data.y, data.z, true, false, false)
-    SetEntityRotation(object, data.rotation.x, data.rotation.y, data.rotation.z, 0, true)
+    local object = CreateObject(propModel, 0.0, 0.0, 0.0, true, false, true)
+    SetEntityCoordsNoOffset(object, x, y, z, false, false, false)
+    SetEntityHeading(object, rotZ)
+    FreezeEntityPosition(object, true)
     SetEntityAsMissionEntity(object, true, true)
 
     phonographEntities[uniqueId] = object
@@ -251,8 +273,12 @@ end)
 RegisterNetEvent('rs_phonograph:client:updatePhonographId')
 AddEventHandler('rs_phonograph:client:updatePhonographId', function(id)
     if lastPlacedPhonograph and lastPlacedPhonograph.entity then
-        phonographEntities[id] = lastPlacedPhonograph.entity -- registramos con ID real
+        phonographEntities[id] = lastPlacedPhonograph.entity
         lastPlacedPhonograph.id = id
+
+        if pendingPhonographObject == lastPlacedPhonograph.entity then
+            pendingPhonographObject = nil
+        end
 
         CreateThread(function()
             Wait(100)
@@ -282,21 +308,28 @@ promptGroup:setOnHoldModeJustCompleted(function(group, prompt)
 end)
 
 CreateThread(function()
+    Wait(1500)
+    findWorldPhonographs()
+    updatePrompts()
+end)
+
+CreateThread(function()
     while true do
         Wait(500)
         updatePrompts()
     end
 end)
 
-UipromptManager:startEventThread()
-
-
-
 RegisterNetEvent("vorp:SelectedCharacter")
 AddEventHandler("vorp:SelectedCharacter", function()
     clearAllPhonographs()
     TriggerServerEvent("rs_phonograph:server:loadPhonographs")
+    Wait(1000)
+    findWorldPhonographs()
+    updatePrompts()
 end)
+
+UipromptManager:startEventThread()
 
 RegisterNetEvent('rs_phonograph:client:placePropPhonograph')
 AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
@@ -330,28 +363,52 @@ AddEventHandler('rs_phonograph:client:placePropPhonograph', function()
             Wait(0)
             local moved = false
 
-            if IsControlPressed(0, 0x6319DB71) then posY = posY + moveStep; moved = true end -- W
-            if IsControlPressed(0, 0x05CA7C52) then posY = posY - moveStep; moved = true end -- S
-            if IsControlPressed(0, 0xA65EBAB4) then posX = posX - moveStep; moved = true end -- A
-            if IsControlPressed(0, 0xDEB34313) then posX = posX + moveStep; moved = true end -- D
-            if IsControlPressed(0, 0xB03A913B) then posZ = posZ + moveStep; moved = true end -- Q
-            if IsControlPressed(0, 0x42385422) then posZ = posZ - moveStep; moved = true end -- E
-            if IsControlPressed(0, 0xE6F612E4) then heading = heading + 5; moved = true end -- Rotate right
-            if IsControlPressed(0, 0x1CE6D9EB) then heading = heading - 5; moved = true end -- Rotate left
+            if IsControlPressed(0, 0x6319DB71) then posY = posY + moveStep; moved = true end
+            if IsControlPressed(0, 0x05CA7C52) then posY = posY - moveStep; moved = true end
+            if IsControlPressed(0, 0xA65EBAB4) then posX = posX - moveStep; moved = true end
+            if IsControlPressed(0, 0xDEB34313) then posX = posX + moveStep; moved = true end
+            if IsControlPressed(0, 0xB03A913B) then posZ = posZ + moveStep; moved = true end
+            if IsControlPressed(0, 0x42385422) then posZ = posZ - moveStep; moved = true end
+            if IsControlPressed(0, 0xE6F612E4) then heading = heading + 5; moved = true end
+            if IsControlPressed(0, 0x1CE6D9EB) then heading = heading - 5; moved = true end
+
+           if IsControlJustPressed(0, 0x4F49CC4C) then
+                local myInput = {
+                    type = "enableinput",
+                    inputType = "input",
+                    button = Config.Menu.Confirm,
+                    placeholder = Config.Menu.MinMax,
+                    style = "block",
+                    attributes = {
+                        inputHeader = Config.Menu.Speed,
+                        type = "text",
+                        pattern = "[0-9.]+",
+                        title = Config.Menu.Change,
+                        style = "border-radius: 10px; background-color: ; border:none;"
+                    }
+                }
+
+                local result = exports.vorp_inputs:advancedInput(myInput)
+                if result and result ~= "" then
+                    local testint = tonumber(result)
+                    if testint and testint ~= 0 then
+                        moveStep = math.max(0.01, math.min(testint, 5))
+                    end
+                end
+            end
 
             if moved then
                 SetEntityCoords(object, posX, posY, posZ, true, true, true, false)
                 SetEntityHeading(object, heading)
             end
 
-            if IsControlJustPressed(0, 0xC7B5340A) then -- Enter para confirmar colocación
+            if IsControlJustPressed(0, 0xC7B5340A) then
                 isPlacing = false
 
                 FreezeEntityPosition(object, true)
                 SetEntityAlpha(object, 255, false)
                 SetEntityCollision(object, true, true)
 
-                -- Obtener posición y rotación exactas actuales del objeto
                 local pos = GetEntityCoords(object)
                 local rot = GetEntityRotation(object, 2)
 
@@ -384,7 +441,6 @@ end)
 local function getSoundName(uniqueId)
     return tostring(uniqueId)
 end
-
 
 RegisterNetEvent('rs_phonograph:client:playMusic')
 AddEventHandler('rs_phonograph:client:playMusic', function(uniqueId, coords, url, volume)
