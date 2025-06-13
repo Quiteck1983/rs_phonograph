@@ -34,7 +34,6 @@ AddEventHandler('rs_phonograph:server:soundEnded', function(uniqueId)
     currentlyPlaying[uniqueId] = nil
 end)
 
-
 RegisterNetEvent('rs_phonograph:server:saveOwner')
 AddEventHandler('rs_phonograph:server:saveOwner', function(coords, rotation)
     local src = source
@@ -87,7 +86,6 @@ AddEventHandler('rs_phonograph:server:saveOwner', function(coords, rotation)
     end)
 end)
 
-
 RegisterNetEvent('rs_phonograph:server:pickUpByOwner')
 AddEventHandler('rs_phonograph:server:pickUpByOwner', function(phonographId)
     local src = source
@@ -124,15 +122,13 @@ AddEventHandler('rs_phonograph:server:pickUpByOwner', function(phonographId)
                         'DELETE FROM phonographs WHERE id = ?',
                         {phonographId},
                         function(result)
-                            -- Asegurar que el resultado indique éxito
+
                             if result and (result.affectedRows or result.affected_rows or result.changes) and (result.affectedRows > 0 or result.affected_rows > 0 or result.changes > 0) then
                                 VorpInv.addItem(src, "phonograph", 1)
                                 VORPcore.NotifyLeft(src, Config.Text.Phono, Config.Text.Picked, "generic_textures", "tick", 4000, "GREEN")
                             end
                         end
                     )
-                else
-                    VORPcore.NotifyLeft(src, Config.Text.Phono, "You are too far from the phonograph.", "menu_textures", "cross", 3000, "COLOR_RED")
                 end
             else
                 VORPcore.NotifyLeft(src, Config.Text.Phono, Config.Text.Dont, "menu_textures", "cross", 3000, "COLOR_RED")
@@ -141,7 +137,7 @@ AddEventHandler('rs_phonograph:server:pickUpByOwner', function(phonographId)
     )
 end)
 
-local function loadPhonographs()
+local function loadPhonographs(targetPlayer)
     exports.oxmysql:execute('SELECT * FROM phonographs', {}, function(results)
         if results then
             for _, row in pairs(results) do
@@ -156,21 +152,16 @@ local function loadPhonographs()
                         z = row.rot_z,
                     }
                 }
-                TriggerClientEvent('rs_phonograph:client:spawnPhonograph', -1, phonographData)
+                TriggerClientEvent('rs_phonograph:client:spawnPhonograph', targetPlayer, phonographData)
             end
         end
     end)
 end
 
-AddEventHandler('onResourceStart', function(resource)
-    if resource == GetCurrentResourceName() then
-        loadPhonographs()
-    end
-end)
-
 RegisterNetEvent('rs_phonograph:server:loadPhonographs')
 AddEventHandler('rs_phonograph:server:loadPhonographs', function()
-    loadPhonographs()
+    local src = source
+    loadPhonographs(src)
 end)
 
 VorpInv.RegisterUsableItem("phonograph", function(data)
