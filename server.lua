@@ -87,7 +87,7 @@ AddEventHandler('rs_phonograph:server:saveOwner', function(coords, rotation)
 end)
 
 RegisterNetEvent('rs_phonograph:server:pickUpByOwner')
-AddEventHandler('rs_phonograph:server:pickUpByOwner', function(phonographId)
+AddEventHandler('rs_phonograph:server:pickUpByOwner', function(uniqueId)
     local src = source
     local User = VORPcore.getUser(src)
     if not User then return end
@@ -103,27 +103,27 @@ AddEventHandler('rs_phonograph:server:pickUpByOwner', function(phonographId)
 
     exports.oxmysql:execute(
         'SELECT * FROM phonographs WHERE id = ? AND owner_identifier = ? AND owner_charid = ?',
-        {phonographId, u_identifier, u_charid},
+        {uniqueId, u_identifier, u_charid},
         function(results)
             if results and #results > 0 then
                 local row = results[1]
                 local phonoCoords = vector3(row.x, row.y, row.z)
-
                 local distance = #(playerCoords - phonoCoords)
-                if distance <= 1.5 then
-                    TriggerClientEvent('rs_phonograph:client:removePhonograph', -1, phonographId)
 
-                    if currentlyPlaying[phonographId] then
-                        TriggerClientEvent('rs_phonograph:client:stopMusic', -1, phonographId)
-                        currentlyPlaying[phonographId] = nil
+                if distance <= 2.5 then
+                    TriggerClientEvent('rs_phonograph:client:removePhonograph', -1, uniqueId)
+
+                    if currentlyPlaying[uniqueId] then
+                        TriggerClientEvent('rs_phonograph:client:stopMusic', -1, uniqueId)
+                        currentlyPlaying[uniqueId] = nil
                     end
 
                     exports.oxmysql:execute(
                         'DELETE FROM phonographs WHERE id = ?',
-                        {phonographId},
+                        {uniqueId},
                         function(result)
-
-                            if result and (result.affectedRows or result.affected_rows or result.changes) and (result.affectedRows > 0 or result.affected_rows > 0 or result.changes > 0) then
+                            local affected = result and (result.affectedRows or result.affected_rows or result.changes)
+                            if affected and affected > 0 then
                                 VorpInv.addItem(src, "phonograph", 1)
                                 VORPcore.NotifyLeft(src, Config.Text.Phono, Config.Text.Picked, "generic_textures", "tick", 4000, "GREEN")
                             end
