@@ -172,34 +172,16 @@ local closestId = nil
 local pendingPhonographObject = nil
 phonographEntities = {}
 
-local function findWorldPhonographs()
-    local modelHash = `p_phonograph01x`
-    local handle, object = FindFirstObject()
-    local success
-    repeat
-        if DoesEntityExist(object) and GetEntityModel(object) == modelHash then
-            local id = NetworkGetNetworkIdFromEntity(object)
-            if not phonographEntities[id] then
-                phonographEntities[id] = object
-               -- print("[Debug] Fonógrafo del mundo detectado. ID:", id)
-            end
-        end
-        success, object = FindNextObject(handle)
-    until not success
-    EndFindObject(handle)
-end
 
 local function clearAllPhonographs()
     for id, entity in pairs(phonographEntities) do
         if DoesEntityExist(entity) and NetworkGetEntityIsNetworked(entity) then
-           -- print("[Debug] Borrando fonógrafo colocado por jugador. ID:", id)
             DeleteObject(entity)
         end
     end
     phonographEntities = {}
 
     if lastPlacedPhonograph and lastPlacedPhonograph.entity and DoesEntityExist(lastPlacedPhonograph.entity) then
-       -- print("[Debug] Borrando último fonógrafo colocado")
         DeleteObject(lastPlacedPhonograph.entity)
     end
     lastPlacedPhonograph = nil
@@ -238,8 +220,6 @@ local function updatePrompts()
     playMusicPrompt:setEnabled(found)
     pickUpPrompt:setVisible(found)
     pickUpPrompt:setEnabled(found)
-
-   -- print("[PromptDebug] Found:", found, "Closest entity:", closestEntity, "Closest ID:", closestId)
 end
 
 RegisterNetEvent('rs_phonograph:client:spawnPhonograph')
@@ -263,6 +243,7 @@ AddEventHandler('rs_phonograph:client:spawnPhonograph', function(data)
     SetEntityAsMissionEntity(object, true, true)
 
     phonographEntities[uniqueId] = object
+    Entity(object).state.phonoId = uniqueId
 
     CreateThread(function()
         Wait(1000)
@@ -308,12 +289,6 @@ promptGroup:setOnHoldModeJustCompleted(function(group, prompt)
 end)
 
 CreateThread(function()
-    Wait(1500)
-    findWorldPhonographs()
-    updatePrompts()
-end)
-
-CreateThread(function()
     while true do
         Wait(500)
         updatePrompts()
@@ -325,7 +300,6 @@ AddEventHandler("vorp:SelectedCharacter", function()
     clearAllPhonographs()
     TriggerServerEvent("rs_phonograph:server:loadPhonographs")
     Wait(1000)
-    findWorldPhonographs()
     updatePrompts()
 end)
 
