@@ -243,7 +243,6 @@ AddEventHandler('rs_phonograph:client:spawnPhonograph', function(data)
     SetEntityAsMissionEntity(object, true, true)
 
     phonographEntities[uniqueId] = object
-    Entity(object).state.phonoId = uniqueId
 
     CreateThread(function()
         Wait(1000)
