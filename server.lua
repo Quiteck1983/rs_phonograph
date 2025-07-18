@@ -124,7 +124,7 @@ AddEventHandler('rs_phonograph:server:pickUpByOwner', function(uniqueId)
                         function(result)
                             local affected = result and (result.affectedRows or result.affected_rows or result.changes)
                             if affected and affected > 0 then
-                                VorpInv.addItem(src, "phonograph", 1)
+                                VorpInv.addItem(src, Config.PhonoItems, 1)
                                 VORPcore.NotifyLeft(src, Config.Text.Phono, Config.Text.Picked, "generic_textures", "tick", 4000, "GREEN")
                             end
                         end
@@ -164,7 +164,7 @@ AddEventHandler('rs_phonograph:server:loadPhonographs', function()
     loadPhonographs(src)
 end)
 
-VorpInv.RegisterUsableItem("phonograph", function(data)
+VorpInv.RegisterUsableItem(Config.PhonoItems, function(data)
     local src = data.source
     local User = VORPcore.getUser(src)
     if not User then return end
@@ -188,5 +188,5 @@ end)
 
 RegisterNetEvent("rs_phonograph:givePhonograph", function()
     local src = source
-    VorpInv.subItem(src, "phonograph", 1)
+    VorpInv.subItem(src, Config.PhonoItems, 1)
 end)
