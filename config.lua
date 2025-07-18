@@ -1,5 +1,7 @@
 Config = {}
 
+Config.PhonoItems = "phonograph"
+
 Config.Promp = {
     Play = "Play Music",
     Collect = "Collect",
